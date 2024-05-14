@@ -159,6 +159,7 @@ type Tx struct {
 }
 
 func (tx *Tx) Exec(query string, args ...interface{}) (sql.Result, error) {
+	query = finalizeQuery(tx, query)
 	log.Info(3, query)
 	log.Infof(3, "params: %v", args)
 
@@ -166,6 +167,7 @@ func (tx *Tx) Exec(query string, args ...interface{}) (sql.Result, error) {
 }
 
 func (tx *Tx) Query(query string, args ...interface{}) (*sql.Rows, error) {
+	query = finalizeQuery(tx, query)
 	log.Info(3, query)
 	log.Infof(3, "params: %v", args)
 
@@ -209,4 +211,24 @@ func collationFor(ignoreCase bool) string {
 	}
 
 	return ""
+}
+
+func finalizeQuery(tx *Tx, query string) string {
+	switch tx.driver {
+	case "mysql":
+		return compatMySql(query)
+	default:
+		return query
+	}
+}
+
+func compatMySql(query string) string {
+	// Fix parameters
+	// TODO: Could be better
+	regex := regexp.MustCompile(`\?\d+`)
+	query = regex.ReplaceAllString(query, "?")
+	// Fix INSERT OR IGNORE
+	regex = regexp.MustCompile(`INSERT\s+OR\s+IGNORE\s+`)
+	query = regex.ReplaceAllString(query, "INSERT IGNORE ")
+	return query
 }
