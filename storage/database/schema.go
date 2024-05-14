@@ -18,6 +18,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
+
 	"github.com/oniony/TMSU/common"
 )
 
@@ -131,8 +132,8 @@ func createSchema(tx *sql.Tx) error {
 func createTagTable(tx *sql.Tx) error {
 	sql := `
 CREATE TABLE IF NOT EXISTS tag (
-    id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL
 )`
 
 	if _, err := tx.Exec(sql); err != nil {
@@ -153,10 +154,10 @@ ON tag(name)`
 func createFileTable(tx *sql.Tx) error {
 	sql := `
 CREATE TABLE IF NOT EXISTS file (
-    id INTEGER PRIMARY KEY,
-    directory TEXT NOT NULL,
-    name TEXT NOT NULL,
-    fingerprint TEXT NOT NULL,
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    directory VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    fingerprint VARCHAR(255) NOT NULL,
     mod_time DATETIME NOT NULL,
     size INTEGER NOT NULL,
     is_dir BOOLEAN NOT NULL,
@@ -180,9 +181,9 @@ ON file(fingerprint)`
 
 func createValueTable(tx *sql.Tx) error {
 	sql := `
-CREATE TABLE IF NOT EXISTS value (
+CREATE TABLE IF NOT EXISTS ` + "`value`" + ` (
     id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL,
+    name VARCHAR(255) NOT NULL,
     CONSTRAINT con_value_name UNIQUE (name)
 )`
 
@@ -201,8 +202,8 @@ CREATE TABLE IF NOT EXISTS file_tag (
     value_id INTEGER NOT NULL,
     PRIMARY KEY (file_id, tag_id, value_id),
     FOREIGN KEY (file_id) REFERENCES file(id),
-    FOREIGN KEY (tag_id) REFERENCES tag(id)
-    FOREIGN KEY (value_id) REFERENCES value(id)
+    FOREIGN KEY (tag_id) REFERENCES tag(id),
+    FOREIGN KEY (value_id) REFERENCES ` + "`value`" + `(id)
 )`
 
 	if _, err := tx.Exec(sql); err != nil {
@@ -256,7 +257,7 @@ CREATE TABLE IF NOT EXISTS implication (
 func createQueryTable(tx *sql.Tx) error {
 	sql := `
 CREATE TABLE IF NOT EXISTS query (
-    text TEXT PRIMARY KEY
+    text VARCHAR(255) PRIMARY KEY
 )`
 
 	if _, err := tx.Exec(sql); err != nil {
@@ -269,8 +270,8 @@ CREATE TABLE IF NOT EXISTS query (
 func createSettingTable(tx *sql.Tx) error {
 	sql := `
 CREATE TABLE IF NOT EXISTS setting (
-    name TEXT PRIMARY KEY,
-    value TEXT NOT NULL
+    name VARCHAR(255) PRIMARY KEY,
+    value VARCHAR(255) NOT NULL
 )`
 
 	if _, err := tx.Exec(sql); err != nil {
@@ -283,10 +284,10 @@ CREATE TABLE IF NOT EXISTS setting (
 func createVersionTable(tx *sql.Tx) error {
 	sql := `
 CREATE TABLE IF NOT EXISTS version (
-    major NUMBER NOT NULL,
-    minor NUMBER NOT NULL,
-    patch NUMBER NOT NULL,
-    revision NUMBER NOT NULL,
+    major INT NOT NULL,
+    minor INT NOT NULL,
+    patch INT NOT NULL,
+    revision INT NOT NULL,
     PRIMARY KEY (major, minor, patch, revision)
 )`
 
