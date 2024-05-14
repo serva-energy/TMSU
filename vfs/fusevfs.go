@@ -13,12 +13,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+//go:build !windows
 // +build !windows
 
 package vfs
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"syscall"
+	"time"
+
 	"github.com/hanwen/go-fuse/fuse"
 	"github.com/hanwen/go-fuse/fuse/nodefs"
 	"github.com/hanwen/go-fuse/fuse/pathfs"
@@ -26,12 +34,7 @@ import (
 	"github.com/oniony/TMSU/entities"
 	"github.com/oniony/TMSU/query"
 	"github.com/oniony/TMSU/storage"
-	"os"
-	"path/filepath"
-	"strconv"
-	"strings"
-	"syscall"
-	"time"
+	"github.com/oniony/TMSU/storage/database"
 )
 
 const helpFilename = "README.md"
@@ -785,15 +788,19 @@ func (vfs FuseVfs) getQueryEntryAttr(path []string) (*fuse.Attr, fuse.Status) {
 
 func (vfs FuseVfs) getDatabaseFileAttr() (*fuse.Attr, fuse.Status) {
 	databasePath := vfs.store.DbPath
-
+	var size int64 = 0
+	var modTime time.Time
 	fileInfo, err := os.Stat(databasePath)
-	if err != nil {
-		log.Fatalf("could not stat database: %v", err)
+	if !database.HasScheme(databasePath) {
+		if err != nil {
+			log.Fatalf("could not stat database: %v", err)
+		}
+		size = fileInfo.Size()
+		modTime = fileInfo.ModTime()
+
 	}
 
-	modTime := fileInfo.ModTime()
-
-	return &fuse.Attr{Mode: fuse.S_IFLNK | 0755, Size: uint64(fileInfo.Size()), Mtime: uint64(modTime.Unix()), Mtimensec: uint32(modTime.Nanosecond())}, fuse.OK
+	return &fuse.Attr{Mode: fuse.S_IFLNK | 0755, Size: uint64(size), Mtime: uint64(modTime.Unix()), Mtimensec: uint32(modTime.Nanosecond())}, fuse.OK
 }
 
 func (vfs FuseVfs) getFileEntryAttr(fileId entities.FileId) (*fuse.Attr, fuse.Status) {

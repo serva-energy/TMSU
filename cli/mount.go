@@ -13,20 +13,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+//go:build !windows
 // +build !windows
 
 package cli
 
 import (
 	"fmt"
-	"github.com/oniony/TMSU/common/log"
-	"github.com/oniony/TMSU/vfs"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"syscall"
 	"time"
+
+	"github.com/oniony/TMSU/common/log"
+	"github.com/oniony/TMSU/storage/database"
+	"github.com/oniony/TMSU/vfs"
 )
 
 var MountCommand = Command{
@@ -137,12 +140,14 @@ func mountExplicit(databasePath string, mountPath string, mountOptions string) e
 		return fmt.Errorf("%v: mount point is not a directory", mountPath)
 	}
 
-	stat, err = os.Stat(databasePath)
-	if err != nil {
-		return fmt.Errorf("%v: could not stat: %v", databasePath, err)
-	}
-	if stat == nil {
-		return fmt.Errorf("%v: database does not exist", databasePath)
+	if !database.HasScheme(databasePath) {
+		stat, err = os.Stat(databasePath)
+		if err != nil {
+			return fmt.Errorf("%v: could not stat: %v", databasePath, err)
+		}
+		if stat == nil {
+			return fmt.Errorf("%v: database does not exist", databasePath)
+		}
 	}
 
 	log.Infof(2, "spawning daemon to mount VFS for database '%v' at '%v'", databasePath, mountPath)

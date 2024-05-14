@@ -230,5 +230,8 @@ func compatMySql(query string) string {
 	// Fix INSERT OR IGNORE
 	regex = regexp.MustCompile(`INSERT\s+OR\s+IGNORE\s+`)
 	query = regex.ReplaceAllString(query, "INSERT IGNORE ")
+	// Remove '==' comparison
+	regex = regexp.MustCompile(`==`)
+	query = regex.ReplaceAllString(query, "=")
 	return query
 }
