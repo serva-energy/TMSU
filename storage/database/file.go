@@ -17,12 +17,13 @@ package database
 
 import (
 	"database/sql"
-	"github.com/oniony/TMSU/common/fingerprint"
-	"github.com/oniony/TMSU/entities"
-	"github.com/oniony/TMSU/query"
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/oniony/TMSU/common/fingerprint"
+	"github.com/oniony/TMSU/entities"
+	"github.com/oniony/TMSU/query"
 )
 
 // Retrieves the total number of tracked files.
@@ -365,11 +366,20 @@ func readFile(rows *sql.Rows) (*entities.File, error) {
 	var fileId entities.FileId
 	var directory, name, fp string
 	var modTime time.Time
+	var modTimeStr string
 	var size int64
 	var isDir bool
 	err := rows.Scan(&fileId, &directory, &name, &fp, &modTime, &size, &isDir)
 	if err != nil {
-		return nil, err
+		// Fallback to parsing mod_time as string
+		err := rows.Scan(&fileId, &directory, &name, &fp, &modTimeStr, &size, &isDir)
+		if err != nil {
+			return nil, err
+		}
+		modTime, err = time.Parse(time.DateTime, modTimeStr)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &entities.File{fileId, directory, name, fingerprint.Fingerprint(fp), modTime, size, isDir}, nil
