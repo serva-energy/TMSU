@@ -18,19 +18,73 @@ package database
 import (
 	"database/sql"
 	"errors"
+	"os"
+	"reflect"
+	"regexp"
+	"strings"
+
+	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mattn/go-sqlite3" // initialised Sqlite3
 	"github.com/oniony/TMSU/common/log"
-	"os"
 )
 
 type Database struct {
 	db *sql.DB
 }
 
+// Return scheme. The part before '://'.
+// Example: return 'mysql' for 'mysql://db'
+func GetScheme(path string) string {
+	re := regexp.MustCompile(`\w+?:\/\/`)
+	match := re.Find([]byte(path))
+	if match == nil {
+		return ""
+	}
+	return strings.Replace(string(match), "://", "", 1)
+}
+
+// Return the part after scheme or original string if not found
+func SplitPathFromScheme(path string) string {
+	splitPath := strings.SplitAfterN(path, "://", 2)
+	if len(splitPath) != 2 {
+		return path
+	}
+	return splitPath[1]
+}
+
+func HasScheme(path string) bool {
+	scheme := GetScheme(path)
+	return len(scheme) > 1
+}
+
+// Return the registered driver name for a 'sql.DB' or empty string if not registered
+// Assume that the driver name is also the package name
+// This should be the same name that is used in 'sql.Open'
+// Example: return 'sqlite3' for driver with type '*sqlite3.SQLiteDriver'
+func GetDriverName(db *sql.DB) string {
+	dbDriverType := reflect.TypeOf(db.Driver()).Elem().String()
+	dbDriverName := strings.Split(dbDriverType, ".")[0]
+	for _, name := range sql.Drivers() {
+		if name == dbDriverName {
+			return name
+		}
+	}
+	return ""
+}
+
+func OpenDB(path string) (*sql.DB, error) {
+	if (HasScheme(path)) {
+		scheme := GetScheme(path)
+		dbPath := SplitPathFromScheme(path)
+		return sql.Open(scheme, dbPath)
+	}
+	return sql.Open("sqlite3", path)
+}
+
 func CreateAt(path string) error {
 	log.Infof(2, "creating database at '%v'.", path)
 
-	db, err := sql.Open("sqlite3", path)
+	db, err := OpenDB(path)
 	if err != nil {
 		return DatabaseAccessError{path, err}
 	}
@@ -56,7 +110,7 @@ func OpenAt(path string) (*Database, error) {
 	log.Infof(2, "opening database at '%v'.", path)
 
 	_, err := os.Stat(path)
-	if err != nil {
+	if err != nil && !HasScheme(path) {
 		switch {
 		case os.IsNotExist(err):
 			return nil, DatabaseNotFoundError{path}
@@ -65,7 +119,7 @@ func OpenAt(path string) (*Database, error) {
 		}
 	}
 
-	db, err := sql.Open("sqlite3", path)
+	db, err := OpenDB(path)
 	if err != nil {
 		return nil, DatabaseAccessError{path, err}
 	}
@@ -96,11 +150,12 @@ func (database *Database) Begin() (*Tx, error) {
 		return nil, err
 	}
 
-	return &Tx{tx}, nil
+	return &Tx{tx, GetDriverName(database.db)}, nil
 }
 
 type Tx struct {
 	tx *sql.Tx
+	driver string
 }
 
 func (tx *Tx) Exec(query string, args ...interface{}) (sql.Result, error) {

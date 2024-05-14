@@ -17,10 +17,12 @@ package cli
 
 import (
 	"fmt"
-	"github.com/oniony/TMSU/common/log"
-	"github.com/oniony/TMSU/storage"
 	"os"
 	"path/filepath"
+
+	"github.com/oniony/TMSU/common/log"
+	"github.com/oniony/TMSU/storage"
+	"github.com/oniony/TMSU/storage/database"
 )
 
 var InitCommand = Command{
@@ -43,6 +45,10 @@ The new database is used automatically whenever TMSU is invoked from a directory
 func initExec(options Options, args []string, databasePath string) (error, warnings) {
 	paths := args
 
+	if (len(databasePath) > 0) {
+		paths = append(paths, databasePath)
+	}
+
 	if len(paths) == 0 {
 		workingDirectory, err := os.Getwd()
 		if err != nil {
@@ -64,11 +70,13 @@ func initExec(options Options, args []string, databasePath string) (error, warni
 
 func initializeDatabase(path string) error {
 	log.Warnf("%v: creating database", path)
+	var dbPath string = path
+	if !database.HasScheme(path) {
+		tmsuPath := filepath.Join(path, ".tmsu")
+		os.Mkdir(tmsuPath, 0755)
 
-	tmsuPath := filepath.Join(path, ".tmsu")
-	os.Mkdir(tmsuPath, 0755)
-
-	dbPath := filepath.Join(tmsuPath, "db")
+		dbPath = filepath.Join(tmsuPath, "db")
+	}
 
 	return storage.CreateAt(dbPath)
 }
