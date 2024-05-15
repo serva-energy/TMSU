@@ -116,5 +116,8 @@ func getRootPath(db *database.Database) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if rootPath == nil {
+		log.Fatal("Could not get rootPath")
+	}
 	return rootPath.Value, err
 }

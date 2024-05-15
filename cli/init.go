@@ -47,6 +47,9 @@ func initExec(options Options, args []string, databasePath string) (error, warni
 
 	if database.HasScheme(databasePath) {
 		paths = []string{databasePath}
+		if !options.HasOption("--root-path") {
+			log.Fatalf("Networked database requires '--root-path' option")
+		}
 	} else if len(paths) == 0 {
 		workingDirectory, err := os.Getwd()
 		if err != nil {
