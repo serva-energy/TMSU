@@ -262,20 +262,20 @@ func InsertFile(tx *Tx, path string, fingerprint fingerprint.Fingerprint, modTim
 INSERT INTO file (id, directory, name, fingerprint, mod_time, size, is_dir)
 VALUES (?, ?, ?, ?, ?, ?, ?)`
 
-	nextId, err := getNextId(tx, "file", "id")
+	id, err := getNextId(tx, "file", "id")
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := tx.Exec(sql, nextId, directory, name, string(fingerprint), modTime, size, isDir)
+	result, err := tx.Exec(sql, id, directory, name, string(fingerprint), modTime, size, isDir)
 	if err != nil {
 		return nil, err
 	}
 
-	id, err := result.LastInsertId()
-	if err != nil {
-		return nil, err
-	}
+	// id, err := result.LastInsertId()
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {

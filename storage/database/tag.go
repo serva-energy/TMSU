@@ -155,20 +155,20 @@ func InsertTag(tx *Tx, name string) (*entities.Tag, error) {
 INSERT INTO tag (id, name)
 VALUES (?, ?)`
 
-	nextId, err := getNextId(tx, "tag", "id")
+	id, err := getNextId(tx, "tag", "id")
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := tx.Exec(sql, nextId, name)
+	result, err := tx.Exec(sql, id, name)
 	if err != nil {
 		return nil, err
 	}
 
-	id, err := result.LastInsertId()
-	if err != nil {
-		return nil, err
-	}
+	// id, err := result.LastInsertId()
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
