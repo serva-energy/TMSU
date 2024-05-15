@@ -138,7 +138,7 @@ func createSchema(tx *Tx) error {
 func createTagTable(tx *Tx) error {
 	sql := `
 CREATE TABLE IF NOT EXISTS tag (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY,
     name VARCHAR(255) NOT NULL
 )`
 
@@ -160,7 +160,7 @@ ON tag(name)`
 func createFileTable(tx *Tx) error {
 	sql := `
 CREATE TABLE IF NOT EXISTS file (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY,
     directory VARCHAR(255) NOT NULL,
     name VARCHAR(255) NOT NULL,
     fingerprint VARCHAR(255) NOT NULL,

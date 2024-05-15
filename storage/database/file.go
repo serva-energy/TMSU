@@ -259,10 +259,15 @@ func InsertFile(tx *Tx, path string, fingerprint fingerprint.Fingerprint, modTim
 	name := filepath.Base(path)
 
 	sql := `
-INSERT INTO file (directory, name, fingerprint, mod_time, size, is_dir)
-VALUES (?, ?, ?, ?, ?, ?)`
+INSERT INTO file (id, directory, name, fingerprint, mod_time, size, is_dir)
+VALUES (?, ?, ?, ?, ?, ?, ?)`
 
-	result, err := tx.Exec(sql, directory, name, string(fingerprint), modTime, size, isDir)
+	nextId, err := getNextId(tx, "file", "id")
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := tx.Exec(sql, nextId, directory, name, string(fingerprint), modTime, size, isDir)
 	if err != nil {
 		return nil, err
 	}

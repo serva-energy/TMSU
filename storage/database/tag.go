@@ -17,8 +17,9 @@ package database
 
 import (
 	"database/sql"
-	"github.com/oniony/TMSU/entities"
 	"strings"
+
+	"github.com/oniony/TMSU/entities"
 )
 
 // The number of tags in the database.
@@ -151,10 +152,15 @@ WHERE name ` + collation + ` IN (?`
 // Adds a tag.
 func InsertTag(tx *Tx, name string) (*entities.Tag, error) {
 	sql := `
-INSERT INTO tag (name)
-VALUES (?)`
+INSERT INTO tag (id, name)
+VALUES (?, ?)`
 
-	result, err := tx.Exec(sql, name)
+	nextId, err := getNextId(tx, "tag", "id")
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := tx.Exec(sql, nextId, name)
 	if err != nil {
 		return nil, err
 	}

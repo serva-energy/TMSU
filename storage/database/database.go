@@ -18,6 +18,7 @@ package database
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"os"
 	"reflect"
 	"regexp"
@@ -214,6 +215,44 @@ func collationFor(ignoreCase bool) string {
 	return ""
 }
 
+func getCount(tx *Tx, table string, column string) (uint, error) {
+	sql := fmt.Sprintf(`SELECT COUNT(%s) FROM %s`, column, table)
+	rows, err := tx.Query(sql)
+	if err != nil {
+		return 0, err
+	}
+	count, err := readCount(rows)
+	if err != nil {
+		return 0, err
+	}
+	rows.Close()
+	return count, err
+}
+
+func getNextId(tx *Tx, table string, idColumn string) (uint, error) {
+
+	count, err := getCount(tx, table, idColumn)
+	if count == 0 {
+		return 1, err
+	}
+	sql := fmt.Sprintf(`SELECT MAX(%s) FROM %s`, idColumn, table)
+	rows, err := tx.Query(sql)
+	if err != nil {
+		return 0, err
+	}
+
+	if !rows.Next() {
+		return 0, fmt.Errorf("could not get next id for table '%s', column '%s'", table, idColumn)
+	}
+	if rows.Err() != nil {
+		return 0, rows.Err()
+	}
+	var lastID uint
+	err = rows.Scan(&lastID)
+	rows.Close()
+	return lastID + 1, err
+}
+
 func finalizeQuery(tx *Tx, query string) string {
 	switch tx.driver {
 	case "mysql":
@@ -233,6 +272,5 @@ func compatMySql(query string) string {
 	query = regexp.MustCompile(`INSERT\s+OR\s+REPLACE\s+`).ReplaceAllString(query, "REPLACE ")
 	// Remove '==' comparison
 	query = regexp.MustCompile(`==`).ReplaceAllString(query, "=")
-	query = regexp.MustCompile(`AUTOINCREMENT`).ReplaceAllString(query, "AUTO_INCREMENT")
 	return query
 }
