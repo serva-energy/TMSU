@@ -28,7 +28,7 @@ import (
 var InitCommand = Command{
 	Name:     "init",
 	Synopsis: "Initializes a new database",
-	Usages:   []string{"tmsu init [PATH]"},
+	Usages:   []string{"tmsu init [PATH] [--root-path=[ROOTPATH]]"},
 	Description: `Initializes a new local database.
 
 Creates a .tmsu directory under PATH and initialises a new empty database within it.
@@ -36,7 +36,7 @@ Creates a .tmsu directory under PATH and initialises a new empty database within
 If no PATH is specified then the current working directory is assumed.
 
 The new database is used automatically whenever TMSU is invoked from a directory under PATH (unless overridden by the global --database option or the TMSU_DB environment variable.`,
-	Options: Options{},
+	Options: Options{Option{"--root-path", "-P", "root path to use for relative paths; only for networked databases", true, ""},},
 	Exec:    initExec,
 }
 
@@ -45,11 +45,9 @@ The new database is used automatically whenever TMSU is invoked from a directory
 func initExec(options Options, args []string, databasePath string) (error, warnings) {
 	paths := args
 
-	if (len(databasePath) > 0) {
-		paths = append(paths, databasePath)
-	}
-
-	if len(paths) == 0 {
+	if database.HasScheme(databasePath) {
+		paths = []string{databasePath}
+	} else if len(paths) == 0 {
 		workingDirectory, err := os.Getwd()
 		if err != nil {
 			return fmt.Errorf("could not identify working directory: %v", err), nil
@@ -62,6 +60,10 @@ func initExec(options Options, args []string, databasePath string) (error, warni
 	for _, path := range paths {
 		if err := initializeDatabase(path); err != nil {
 			warnings = append(warnings, fmt.Sprintf("%v: could not initialize database: %v", path, err))
+		} else {
+			if err := insertRootPath(options, path); err != nil {
+				warnings = append(warnings, fmt.Sprintf("%v: could not initialize database with root path: %v", path, err))
+			}
 		}
 	}
 
@@ -79,4 +81,25 @@ func initializeDatabase(path string) error {
 	}
 
 	return storage.CreateAt(dbPath)
+}
+
+func insertRootPath(options Options, path string) error {
+	if database.HasScheme(path) && options.HasOption("--root-path") {
+		db, err := database.OpenAt(path)
+		if err != nil {
+			return err
+		}
+
+		tx, err := db.Begin()
+		if err != nil {
+			return err
+		}
+
+		defer tx.Commit()
+		defer db.Close()
+
+		_, err = database.UpdateSetting(tx, "rootPath", options.Get("--root-path").Argument)
+		return err
+	}
+	return nil
 }
