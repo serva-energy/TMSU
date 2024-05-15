@@ -104,6 +104,8 @@ func insertRootPath(options Options, path string) error {
 		if setting == nil {
 			return fmt.Errorf("could not update root path")
 		}
+		tx.Commit()
+		db.Close()
 		return nil
 	}
 	return nil
