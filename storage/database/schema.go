@@ -73,7 +73,10 @@ VALUES (?, ?, ?, ?)`
 func updateSchemaVersion(tx *sql.Tx, version schemaVersion) error {
 	sql := `
 UPDATE version SET major = ?, minor = ?, patch = ?, revision = ?`
-
+	cur := currentSchemaVersion(tx)
+	if cur == version {
+		return nil
+	}
 	result, err := tx.Exec(sql, version.Major, version.Minor, version.Patch, version.Revision)
 	if err != nil {
 		return fmt.Errorf("could not update schema version: %v", err)
