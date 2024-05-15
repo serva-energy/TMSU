@@ -18,15 +18,16 @@ package cli
 import (
 	"bytes"
 	"fmt"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/oniony/TMSU/common/log"
 	"github.com/oniony/TMSU/common/terminal"
 	"github.com/oniony/TMSU/common/terminal/ansi"
 	"github.com/oniony/TMSU/entities"
 	"github.com/oniony/TMSU/storage"
 	"github.com/oniony/TMSU/storage/database"
-	"os"
-	"strings"
-	"time"
 )
 
 // unexported
@@ -43,6 +44,19 @@ func openDatabase(path string) (*storage.Storage, error) {
 			return nil, err
 		}
 	}
+
+	if database.HasScheme(path) {
+		tx, err := storage.Begin()
+		if err != nil {
+			return nil, err
+		}
+		rootPath, err := storage.Setting(tx, "rootPath")
+		if err != nil {
+			return nil, err
+		}
+		storage.RootPath = rootPath.Value
+	}
+
 
 	return storage, nil
 }
