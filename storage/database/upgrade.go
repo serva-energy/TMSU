@@ -16,14 +16,13 @@
 package database
 
 import (
-	"database/sql"
 	"github.com/oniony/TMSU/common"
 	"github.com/oniony/TMSU/common/log"
 )
 
 // unexported
 
-func upgrade(tx *sql.Tx) error {
+func upgrade(tx *Tx) error {
 	version := currentSchemaVersion(tx)
 
 	log.Infof(2, "database schema has version %v, latest schema version is %v", version, latestSchemaVersion)
@@ -83,7 +82,7 @@ func upgrade(tx *sql.Tx) error {
 	return nil
 }
 
-func renameFingerprintAlgorithmSetting(tx *sql.Tx) error {
+func renameFingerprintAlgorithmSetting(tx *Tx) error {
 	if _, err := tx.Exec(`
 UPDATE setting
 SET name = 'fileFingerprintAlgorithm'
@@ -94,7 +93,7 @@ WHERE name = 'fingerprintAlgorithm'`); err != nil {
 	return nil
 }
 
-func recreateImplicationTable(tx *sql.Tx) error {
+func recreateImplicationTable(tx *Tx) error {
 	if _, err := tx.Exec(`
 ALTER TABLE implication
 RENAME TO implication_old`); err != nil {
@@ -120,7 +119,7 @@ DROP TABLE implication_old`); err != nil {
 	return nil
 }
 
-func updateFingerprintAlgorithms(tx *sql.Tx) error {
+func updateFingerprintAlgorithms(tx *Tx) error {
 	rows, err := tx.Query(`
 SELECT value
 FROM setting
@@ -161,7 +160,7 @@ DELETE FROM setting WHERE name = 'fileFingerprintAlgorithm';`); err != nil {
 	return nil
 }
 
-func recreateVersionTable(tx *sql.Tx) error {
+func recreateVersionTable(tx *Tx) error {
 	if _, err := tx.Exec("DROP TABLE version;"); err != nil {
 		return err
 	}

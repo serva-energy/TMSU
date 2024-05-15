@@ -84,10 +84,11 @@ func OpenDB(path string) (*sql.DB, error) {
 func CreateAt(path string) error {
 	log.Infof(2, "creating database at '%v'.", path)
 
-	db, err := OpenDB(path)
+	_db, err := OpenDB(path)
 	if err != nil {
 		return DatabaseAccessError{path, err}
 	}
+	db := Database{_db}
 	defer db.Close()
 
 	tx, err := db.Begin()
@@ -119,11 +120,11 @@ func OpenAt(path string) (*Database, error) {
 		}
 	}
 
-	db, err := OpenDB(path)
+	_db, err := OpenDB(path)
 	if err != nil {
 		return nil, DatabaseAccessError{path, err}
 	}
-
+	db := Database{_db}
 	tx, err := db.Begin()
 	if err != nil {
 		return nil, DatabaseTransactionError{path, err}
@@ -137,7 +138,7 @@ func OpenAt(path string) (*Database, error) {
 		return nil, DatabaseTransactionError{path, err}
 	}
 
-	return &Database{db}, nil
+	return &db, nil
 }
 
 func (database *Database) Close() error {
@@ -225,16 +226,13 @@ func finalizeQuery(tx *Tx, query string) string {
 func compatMySql(query string) string {
 	// Fix parameters
 	// TODO: Could be better
-	regex := regexp.MustCompile(`\?\d+`)
-	query = regex.ReplaceAllString(query, "?")
+	query = regexp.MustCompile(`\?\d+`).ReplaceAllString(query, "?")
 	// Fix INSERT OR IGNORE
-	regex = regexp.MustCompile(`INSERT\s+OR\s+IGNORE\s+`)
-	query = regex.ReplaceAllString(query, "INSERT IGNORE ")
+	query = regexp.MustCompile(`INSERT\s+OR\s+IGNORE\s+`).ReplaceAllString(query, "INSERT IGNORE ")
 	// Fix INSERT OR REPLACE
-	regex = regexp.MustCompile(`INSERT\s+OR\s+REPLACE\s+`)
-	query = regex.ReplaceAllString(query, "REPLACE ")
+	query = regexp.MustCompile(`INSERT\s+OR\s+REPLACE\s+`).ReplaceAllString(query, "REPLACE ")
 	// Remove '==' comparison
-	regex = regexp.MustCompile(`==`)
-	query = regex.ReplaceAllString(query, "=")
+	query = regexp.MustCompile(`==`).ReplaceAllString(query, "=")
+	query = regexp.MustCompile(`AUTOINCREMENT`).ReplaceAllString(query, "AUTO_INCREMENT")
 	return query
 }

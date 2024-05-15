@@ -16,7 +16,6 @@
 package database
 
 import (
-	"database/sql"
 	"fmt"
 
 	"github.com/oniony/TMSU/common"
@@ -26,7 +25,7 @@ import (
 
 var latestSchemaVersion = schemaVersion{common.Version{0, 7, 0}, 1}
 
-func currentSchemaVersion(tx *sql.Tx) schemaVersion {
+func currentSchemaVersion(tx *Tx) schemaVersion {
 	sql := `
 SELECT *
 FROM version`
@@ -50,7 +49,7 @@ FROM version`
 	return schemaVersion{common.Version{major, minor, patch}, revision}
 }
 
-func insertSchemaVersion(tx *sql.Tx, version schemaVersion) error {
+func insertSchemaVersion(tx *Tx, version schemaVersion) error {
 	sql := `
 INSERT INTO version (major, minor, patch, revision)
 VALUES (?, ?, ?, ?)`
@@ -70,7 +69,7 @@ VALUES (?, ?, ?, ?)`
 	return nil
 }
 
-func updateSchemaVersion(tx *sql.Tx, version schemaVersion) error {
+func updateSchemaVersion(tx *Tx, version schemaVersion) error {
 	sql := `
 UPDATE version SET major = ?, minor = ?, patch = ?, revision = ?`
 	cur := currentSchemaVersion(tx)
@@ -92,7 +91,7 @@ UPDATE version SET major = ?, minor = ?, patch = ?, revision = ?`
 	return nil
 }
 
-func createSchema(tx *sql.Tx) error {
+func createSchema(tx *Tx) error {
 	if err := createTagTable(tx); err != nil {
 		return err
 	}
@@ -136,10 +135,10 @@ func createSchema(tx *sql.Tx) error {
 	return nil
 }
 
-func createTagTable(tx *sql.Tx) error {
+func createTagTable(tx *Tx) error {
 	sql := `
 CREATE TABLE IF NOT EXISTS tag (
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR(255) NOT NULL
 )`
 
@@ -158,10 +157,10 @@ ON tag(name)`
 	return nil
 }
 
-func createFileTable(tx *sql.Tx) error {
+func createFileTable(tx *Tx) error {
 	sql := `
 CREATE TABLE IF NOT EXISTS file (
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     directory VARCHAR(255) NOT NULL,
     name VARCHAR(255) NOT NULL,
     fingerprint VARCHAR(255) NOT NULL,
@@ -186,7 +185,7 @@ ON file(fingerprint)`
 	return nil
 }
 
-func createValueTable(tx *sql.Tx) error {
+func createValueTable(tx *Tx) error {
 	sql := `
 CREATE TABLE IF NOT EXISTS ` + "`value`" + ` (
     id INTEGER PRIMARY KEY,
@@ -201,7 +200,7 @@ CREATE TABLE IF NOT EXISTS ` + "`value`" + ` (
 	return nil
 }
 
-func createFileTagTable(tx *sql.Tx) error {
+func createFileTagTable(tx *Tx) error {
 	sql := `
 CREATE TABLE IF NOT EXISTS file_tag (
     file_id INTEGER NOT NULL,
@@ -244,7 +243,7 @@ ON file_tag(value_id)`
 	return nil
 }
 
-func createImplicationTable(tx *sql.Tx) error {
+func createImplicationTable(tx *Tx) error {
 	sql := `
 CREATE TABLE IF NOT EXISTS implication (
     tag_id INTEGER NOT NULL,
@@ -261,7 +260,7 @@ CREATE TABLE IF NOT EXISTS implication (
 	return nil
 }
 
-func createQueryTable(tx *sql.Tx) error {
+func createQueryTable(tx *Tx) error {
 	sql := `
 CREATE TABLE IF NOT EXISTS query (
     text VARCHAR(255) PRIMARY KEY
@@ -274,7 +273,7 @@ CREATE TABLE IF NOT EXISTS query (
 	return nil
 }
 
-func createSettingTable(tx *sql.Tx) error {
+func createSettingTable(tx *Tx) error {
 	sql := `
 CREATE TABLE IF NOT EXISTS setting (
     name VARCHAR(255) PRIMARY KEY,
@@ -288,7 +287,7 @@ CREATE TABLE IF NOT EXISTS setting (
 	return nil
 }
 
-func createVersionTable(tx *sql.Tx) error {
+func createVersionTable(tx *Tx) error {
 	sql := `
 CREATE TABLE IF NOT EXISTS version (
     major INT NOT NULL,
@@ -305,7 +304,7 @@ CREATE TABLE IF NOT EXISTS version (
 	return nil
 }
 
-func insertDefaultValue(tx *sql.Tx) error {
+func insertDefaultValue(tx *Tx) error {
 	sql := `
 INSERT INTO ` + "`value`" + ` (id, name)
 VALUES (?, ?)`
