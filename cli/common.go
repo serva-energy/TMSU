@@ -45,19 +45,6 @@ func openDatabase(path string) (*storage.Storage, error) {
 		}
 	}
 
-	if database.HasScheme(path) {
-		tx, err := storage.Begin()
-		if err != nil {
-			return nil, err
-		}
-		rootPath, err := storage.Setting(tx, "rootPath")
-		if err != nil {
-			return nil, err
-		}
-		storage.RootPath = rootPath.Value
-	}
-
-
 	return storage, nil
 }
 

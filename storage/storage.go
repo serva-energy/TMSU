@@ -17,9 +17,10 @@ package storage
 
 import (
 	"fmt"
+	"path/filepath"
+
 	"github.com/oniony/TMSU/common/log"
 	"github.com/oniony/TMSU/storage/database"
-	"path/filepath"
 )
 
 type Storage struct {
@@ -38,7 +39,13 @@ func OpenAt(path string) (*Storage, error) {
 		return nil, err
 	}
 
-	rootPath, err := determineRootPath(path)
+	rootPath := ""
+	if database.HasScheme(path) {
+		rootPath, err = getRootPath(db)
+	} else {
+		rootPath, err = determineRootPath(path)
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -98,4 +105,16 @@ func determineRootPath(dbPath string) (string, error) {
 	}
 
 	return string(filepath.Separator), nil //TODO Windows
+}
+
+func getRootPath(db *database.Database) (string, error) {
+	tx, err := db.Begin()
+	if err != nil {
+		return "", err
+	}
+	rootPath, err := database.Setting(tx, "rootPath")
+	if err != nil {
+		return "", err
+	}
+	return rootPath.Value, err
 }
