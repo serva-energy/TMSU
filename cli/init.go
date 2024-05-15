@@ -97,12 +97,14 @@ func insertRootPath(options Options, path string) error {
 		if err != nil {
 			return err
 		}
-
-		defer tx.Commit()
-		defer db.Close()
-
-		_, err = database.UpdateSetting(tx, "rootPath", options.Get("--root-path").Argument)
-		return err
+		setting, err := database.UpdateSetting(tx, "rootPath", options.Get("--root-path").Argument)
+		if err != nil {
+			return err
+		}
+		if setting == nil {
+			return fmt.Errorf("could not update root path")
+		}
+		return nil
 	}
 	return nil
 }
