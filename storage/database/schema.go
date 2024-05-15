@@ -122,6 +122,10 @@ func createSchema(tx *sql.Tx) error {
 		return err
 	}
 
+	if err := insertDefaultValue(tx); err != nil {
+		return err
+	}
+
 	if err := insertSchemaVersion(tx, latestSchemaVersion); err != nil {
 		return err
 	}
@@ -295,5 +299,23 @@ CREATE TABLE IF NOT EXISTS version (
 		return err
 	}
 
+	return nil
+}
+
+func insertDefaultValue(tx *sql.Tx) error {
+	sql := `
+INSERT INTO ` + "`value`" + ` (id, name)
+VALUES (?, ?)`
+	result, err := tx.Exec(sql, 0, "")
+	if err != nil {
+		return fmt.Errorf("could not insert default value: %v", err)
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected != 1 {
+		return fmt.Errorf("default value could not be inserted: expected exactly one row to be affected")
+	}
 	return nil
 }
