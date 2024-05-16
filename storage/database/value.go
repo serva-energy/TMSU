@@ -17,8 +17,9 @@ package database
 
 import (
 	"database/sql"
-	"github.com/oniony/TMSU/entities"
 	"strings"
+
+	"github.com/oniony/TMSU/entities"
 )
 
 // Retrieves the count of values.
@@ -299,6 +300,10 @@ func readValues(rows *sql.Rows, values entities.Values) (entities.Values, error)
 		}
 		if value == nil {
 			break
+		}
+		if value.Id == 0 {
+			// Do not add value with Id: 0
+			continue
 		}
 
 		values = append(values, value)
