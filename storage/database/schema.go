@@ -305,14 +305,12 @@ CREATE TABLE IF NOT EXISTS version (
 }
 
 // Insert a default record into value table.
-// Some Databases have foreign key constraints so we have to a record.
-// ! ID: 0 should not be used but name must have a value else weird recursive loops occur in vfs
-// TODO: Explicitly exclude ID: 0 from all queries
+// Some Databases have enforce referential integrity so we have to a record.
 func insertDefaultValue(tx *Tx) error {
 	sql := `
 INSERT INTO ` + "`value`" + ` (id, name)
 VALUES (?, ?)`
-	result, err := tx.Exec(sql, 0, "dummy")
+	result, err := tx.Exec(sql, 0, " ")
 	if err != nil {
 		return fmt.Errorf("could not insert default value: %v", err)
 	}
