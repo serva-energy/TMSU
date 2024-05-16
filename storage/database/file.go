@@ -347,9 +347,9 @@ DELETE FROM file
 WHERE id = ?1
 AND (SELECT count(1)
      FROM file_tag
-     WHERE file_id = ?1) == 0`
+     WHERE file_id = ?2) == 0`
 
-		_, err := tx.Exec(sql, fileId)
+		_, err := tx.Exec(sql, fileId, fileId)
 		if err != nil {
 			return err
 		}

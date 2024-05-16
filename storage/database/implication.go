@@ -17,6 +17,7 @@ package database
 
 import (
 	"database/sql"
+
 	"github.com/oniony/TMSU/entities"
 )
 
@@ -180,9 +181,9 @@ WHERE tag_id = ?1 AND
 func DeleteImplicationsByTagId(tx *Tx, tagId entities.TagId) error {
 	sql := `
 DELETE FROM implication
-WHERE tag_id = ?1 OR implied_tag_id = ?1`
+WHERE tag_id = ?1 OR implied_tag_id = ?2`
 
-	_, err := tx.Exec(sql, tagId)
+	_, err := tx.Exec(sql, tagId, tagId)
 	if err != nil {
 		return err
 	}
@@ -194,9 +195,9 @@ WHERE tag_id = ?1 OR implied_tag_id = ?1`
 func DeleteImplicationsByValueId(tx *Tx, valueId entities.ValueId) error {
 	sql := `
 DELETE FROM implication
-WHERE value_id = ?1 OR implied_value_id = ?1`
+WHERE value_id = ?1 OR implied_value_id = ?2`
 
-	_, err := tx.Exec(sql, valueId)
+	_, err := tx.Exec(sql, valueId, valueId)
 	if err != nil {
 		return err
 	}
