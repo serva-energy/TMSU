@@ -32,8 +32,8 @@ import (
 
 // unexported
 
-func openDatabase(path string) (*storage.Storage, error) {
-	storage, err := storage.OpenAt(path)
+func openDatabase(path string, rootPath string) (*storage.Storage, error) {
+	storage, err := storage.OpenAt(path, rootPath)
 	if err != nil {
 		switch err.(type) {
 		case database.DatabaseNotFoundError:
@@ -44,7 +44,6 @@ func openDatabase(path string) (*storage.Storage, error) {
 			return nil, err
 		}
 	}
-
 	return storage, nil
 }
 

@@ -17,11 +17,12 @@ package cli
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/oniony/TMSU/common/log"
 	_path "github.com/oniony/TMSU/common/path"
 	"github.com/oniony/TMSU/storage"
-	"os"
-	"path/filepath"
 )
 
 var UntaggedCommand = Command{
@@ -41,7 +42,7 @@ Where PATHs are not specified, untagged items under the current working director
 
 // unexported
 
-func untaggedExec(options Options, args []string, databasePath string) (error, warnings) {
+func untaggedExec(options Options, args []string, databasePath string, rootPath string) (error, warnings) {
 	recursive := !options.HasOption("--directory")
 	count := options.HasOption("--count")
 	followSymlinks := !options.HasOption("--no-dereference")
@@ -55,7 +56,7 @@ func untaggedExec(options Options, args []string, databasePath string) (error, w
 		}
 	}
 
-	store, err := openDatabase(databasePath)
+	store, err := openDatabase(databasePath, rootPath)
 	if err != nil {
 		return err, nil
 	}

@@ -17,14 +17,15 @@ package cli
 
 import (
 	"fmt"
-	"github.com/oniony/TMSU/common/log"
-	_path "github.com/oniony/TMSU/common/path"
-	"github.com/oniony/TMSU/entities"
-	"github.com/oniony/TMSU/storage"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/oniony/TMSU/common/log"
+	_path "github.com/oniony/TMSU/common/path"
+	"github.com/oniony/TMSU/entities"
+	"github.com/oniony/TMSU/storage"
 )
 
 //TODO should return warnings for permission errors
@@ -91,11 +92,11 @@ func NewReport() *StatusReport {
 
 // unexported
 
-func statusExec(options Options, args []string, databasePath string) (error, warnings) {
+func statusExec(options Options, args []string, databasePath string, rootPath string) (error, warnings) {
 	dirOnly := options.HasOption("--directory")
 	followSymlinks := !options.HasOption("--no-dereference")
 
-	store, err := openDatabase(databasePath)
+	store, err := openDatabase(databasePath, rootPath)
 	if err != nil {
 		return err, nil
 	}

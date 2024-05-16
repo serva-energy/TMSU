@@ -17,8 +17,9 @@ package cli
 
 import (
 	"fmt"
-	"github.com/oniony/TMSU/storage"
 	"strings"
+
+	"github.com/oniony/TMSU/storage"
 )
 
 var ConfigCommand = Command{
@@ -37,8 +38,8 @@ If a VALUE is specified then the setting is updated.`,
 
 // unexported
 
-func configExec(options Options, args []string, databasePath string) (error, warnings) {
-	store, err := openDatabase(databasePath)
+func configExec(options Options, args []string, databasePath string, rootPath string) (error, warnings) {
+	store, err := openDatabase(databasePath, rootPath)
 	if err != nil {
 		return err, nil
 	}

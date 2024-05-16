@@ -17,6 +17,7 @@ package cli
 
 import (
 	"fmt"
+
 	"github.com/oniony/TMSU/common/log"
 )
 
@@ -34,7 +35,7 @@ var CopyCommand = Command{
 
 // unexported
 
-func copyExec(options Options, args []string, databasePath string) (error, warnings) {
+func copyExec(options Options, args []string, databasePath string, rootPath string) (error, warnings) {
 	if len(args) < 2 {
 		return fmt.Errorf("too few arguments"), nil
 	}
@@ -46,7 +47,7 @@ func copyExec(options Options, args []string, databasePath string) (error, warni
 		destTagNames[index] = parseTagOrValueName(arg)
 	}
 
-	store, err := openDatabase(databasePath)
+	store, err := openDatabase(databasePath, rootPath)
 	if err != nil {
 		return err, nil
 	}

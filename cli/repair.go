@@ -18,14 +18,15 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/oniony/TMSU/common/fingerprint"
 	"github.com/oniony/TMSU/common/log"
 	_path "github.com/oniony/TMSU/common/path"
 	"github.com/oniony/TMSU/entities"
 	"github.com/oniony/TMSU/storage"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 var RepairCommand = Command{
@@ -58,10 +59,10 @@ When run with the --manual option, any paths that begin with OLD are updated to 
 
 // unexported
 
-func repairExec(options Options, args []string, databasePath string) (error, warnings) {
+func repairExec(options Options, args []string, databasePath string, rootPath string) (error, warnings) {
 	pretend := options.HasOption("--pretend")
 
-	store, err := openDatabase(databasePath)
+	store, err := openDatabase(databasePath, rootPath)
 	if err != nil {
 		return err, nil
 	}

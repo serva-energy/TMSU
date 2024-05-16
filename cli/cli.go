@@ -17,11 +17,13 @@ package cli
 
 import (
 	"fmt"
-	"github.com/oniony/TMSU/common/log"
-	_path "github.com/oniony/TMSU/common/path"
 	"os"
 	"os/user"
 	"path/filepath"
+
+	"github.com/oniony/TMSU/common/log"
+	_path "github.com/oniony/TMSU/common/path"
+	"github.com/oniony/TMSU/storage/database"
 )
 
 func Run() {
@@ -57,7 +59,23 @@ func Run() {
 		}
 	}
 
-	err, warnings := command.Exec(options, arguments, databasePath)
+	var rootPath string
+	switch {
+	case options.HasOption("--root-path"):
+		log.Infof(2, "using rootPath from command-line option")
+		rootPath = options.Get("--root-path").Argument
+	case os.Getenv("TMSU_ROOT_PATH") != "":
+		log.Infof(2, "using rootPath from environment variable")
+		rootPath = os.Getenv("TMSU_ROOT_PATH")
+	default:
+		rootPath = ""
+	}
+
+	if !database.HasScheme(databasePath) && rootPath != "" {
+		log.Fatal("cannot use '--root-path' option or 'TMSU_ROOT_PATH' environment variable for sqlite databases")
+	}
+
+	err, warnings := command.Exec(options, arguments, databasePath, rootPath)
 
 	if warnings != nil {
 		for _, warning := range warnings {
@@ -81,6 +99,7 @@ var globalOptions = Options{Option{"--verbose", "-v", "show verbose messages", f
 	Option{"--version", "-V", "show version information and exit", false, ""},
 	Option{"--database", "-D", "use the specified database", true, ""},
 	Option{"--color", "", "colorize the output (auto/always/never)", true, ""},
+	Option{"--root-path", "-P", "root path to use for relative paths; only for networked databases", true, ""},
 }
 
 func findDatabase() (string, error) {

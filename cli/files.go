@@ -17,13 +17,14 @@ package cli
 
 import (
 	"fmt"
+	"path/filepath"
+	"strings"
+
 	"github.com/oniony/TMSU/common/log"
 	"github.com/oniony/TMSU/common/path"
 	"github.com/oniony/TMSU/entities"
 	"github.com/oniony/TMSU/query"
 	"github.com/oniony/TMSU/storage"
-	"path/filepath"
-	"strings"
 )
 
 var FilesCommand = Command{
@@ -62,7 +63,7 @@ Note: If your tag or value name contains whitespace, operators (e.g. '<') or par
 
 // unexported
 
-func filesExec(options Options, args []string, databasePath string) (error, warnings) {
+func filesExec(options Options, args []string, databasePath string, rootPath string) (error, warnings) {
 	dirOnly := options.HasOption("--directory")
 	fileOnly := options.HasOption("--file")
 	print0 := options.HasOption("--print0")
@@ -87,7 +88,7 @@ func filesExec(options Options, args []string, databasePath string) (error, warn
 		}
 	}
 
-	store, err := openDatabase(databasePath)
+	store, err := openDatabase(databasePath, rootPath)
 	if err != nil {
 		return err, nil
 	}

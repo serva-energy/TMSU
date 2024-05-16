@@ -17,6 +17,7 @@ package cli
 
 import (
 	"fmt"
+
 	"github.com/oniony/TMSU/common/log"
 	"github.com/oniony/TMSU/storage"
 )
@@ -34,12 +35,12 @@ var MergeCommand = Command{
 
 // unexported
 
-func mergeExec(options Options, args []string, databasePath string) (error, warnings) {
+func mergeExec(options Options, args []string, databasePath string, rootPath string) (error, warnings) {
 	if len(args) < 2 {
 		return fmt.Errorf("too few arguments"), nil
 	}
 
-	store, err := openDatabase(databasePath)
+	store, err := openDatabase(databasePath, rootPath)
 	if err != nil {
 		return err, nil
 	}

@@ -13,16 +13,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+//go:build !windows
 // +build !windows
 
 package cli
 
 import (
 	"fmt"
-	"github.com/oniony/TMSU/common/log"
-	"github.com/oniony/TMSU/vfs"
 	"os"
 	"os/exec"
+
+	"github.com/oniony/TMSU/common/log"
+	"github.com/oniony/TMSU/vfs"
 )
 
 var UnmountCommand = Command{
@@ -38,7 +40,7 @@ var UnmountCommand = Command{
 
 // unexported
 
-func unmountExec(options Options, args []string, databasePath string) (error, warnings) {
+func unmountExec(options Options, args []string, databasePath string, rootPath string) (error, warnings) {
 	if options.HasOption("--all") {
 		return unmountAll(), nil
 	}

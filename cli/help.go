@@ -17,13 +17,14 @@ package cli
 
 import (
 	"fmt"
-	"github.com/oniony/TMSU/common/log"
-	"github.com/oniony/TMSU/common/terminal"
-	"github.com/oniony/TMSU/common/terminal/ansi"
 	"math"
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/oniony/TMSU/common/log"
+	"github.com/oniony/TMSU/common/terminal"
+	"github.com/oniony/TMSU/common/terminal/ansi"
 )
 
 var HelpCommand = Command{
@@ -40,7 +41,7 @@ var HelpCommand = Command{
 var helpCommands []*Command
 var colorizeRegexp = regexp.MustCompile(`'\S+'`)
 
-func helpExec(options Options, args []string, databasePath string) (error, warnings) {
+func helpExec(options Options, args []string, databasePath string, rootPath string) (error, warnings) {
 	var colour bool
 	if options.HasOption("--color") {
 		when := options.Get("--color").Argument

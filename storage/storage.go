@@ -33,21 +33,22 @@ func CreateAt(path string) error {
 	return database.CreateAt(path)
 }
 
-func OpenAt(path string) (*Storage, error) {
+func OpenAt(path string, rootPath string) (*Storage, error) {
 	db, err := database.OpenAt(path)
 	if err != nil {
 		return nil, err
 	}
 
-	rootPath := ""
-	if database.HasScheme(path) {
-		rootPath, err = getRootPath(db)
-	} else {
-		rootPath, err = determineRootPath(path)
-	}
+	if rootPath == "" {
+		if database.HasScheme(path) {
+			rootPath, err = getRootPath(db)
+		} else {
+			rootPath, err = determineRootPath(path)
+		}
 
-	if err != nil {
-		return nil, err
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	log.Infof(2, "files are stored relative to root path '%v'", rootPath)

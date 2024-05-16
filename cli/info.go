@@ -17,11 +17,12 @@ package cli
 
 import (
 	"fmt"
-	"github.com/oniony/TMSU/common/terminal/ansi"
-	"github.com/oniony/TMSU/storage"
 	"math"
 	"os"
 	"strconv"
+
+	"github.com/oniony/TMSU/common/terminal/ansi"
+	"github.com/oniony/TMSU/storage"
 )
 
 var InfoCommand = Command{
@@ -38,7 +39,7 @@ var InfoCommand = Command{
 
 // unexported
 
-func infoExec(options Options, args []string, databasePath string) (error, warnings) {
+func infoExec(options Options, args []string, databasePath string, rootPath string) (error, warnings) {
 	stats := options.HasOption("--stats")
 	usage := options.HasOption("--usage")
 	colour, err := useColour(options)
@@ -46,7 +47,7 @@ func infoExec(options Options, args []string, databasePath string) (error, warni
 		return err, nil
 	}
 
-	store, err := openDatabase(databasePath)
+	store, err := openDatabase(databasePath, rootPath)
 	if err != nil {
 		return err, nil
 	}

@@ -17,6 +17,7 @@ package cli
 
 import (
 	"fmt"
+
 	"github.com/oniony/TMSU/common/terminal"
 	"github.com/oniony/TMSU/version"
 )
@@ -33,7 +34,7 @@ var VersionCommand = Command{
 
 // unexported
 
-func versionExec(options Options, args []string, databasePath string) (error, warnings) {
+func versionExec(options Options, args []string, databasePath string, rootPath string) (error, warnings) {
 	fmt.Println("TMSU", version.Version)
 	fmt.Println()
 	terminal.PrintWrapped(`Copyright © 2011-2018 Paul Ruane.

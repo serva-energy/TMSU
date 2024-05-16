@@ -17,15 +17,16 @@ package cli
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"strconv"
+
 	"github.com/oniony/TMSU/common/log"
 	_path "github.com/oniony/TMSU/common/path"
 	"github.com/oniony/TMSU/common/terminal"
 	"github.com/oniony/TMSU/common/terminal/ansi"
 	"github.com/oniony/TMSU/entities"
 	"github.com/oniony/TMSU/storage"
-	"os"
-	"path/filepath"
-	"strconv"
 )
 
 var TagsCommand = Command{
@@ -57,7 +58,7 @@ See the 'imply' subcommand for more information on implied tags.`,
 
 // unexported
 
-func tagsExec(options Options, args []string, databasePath string) (error, warnings) {
+func tagsExec(options Options, args []string, databasePath string, rootPath string) (error, warnings) {
 	showCount := options.HasOption("--count")
 	onePerLine := options.HasOption("-1")
 	explicitOnly := options.HasOption("--explicit")
@@ -72,7 +73,7 @@ func tagsExec(options Options, args []string, databasePath string) (error, warni
 		printName = options.Get("--name").Argument
 	}
 
-	store, err := openDatabase(databasePath)
+	store, err := openDatabase(databasePath, rootPath)
 	if err != nil {
 		return err, nil
 	}

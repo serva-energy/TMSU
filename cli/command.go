@@ -23,6 +23,6 @@ type Command struct {
 	Description string
 	Examples    []string
 	Options     Options
-	Exec        func(options Options, arguments []string, databasePath string) (error, warnings)
+	Exec        func(options Options, arguments []string, databasePath string, rootPath string) (error, warnings)
 	Hidden      bool
 }

@@ -17,10 +17,11 @@ package cli
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/oniony/TMSU/common/log"
 	"github.com/oniony/TMSU/entities"
 	"github.com/oniony/TMSU/storage"
-	"strings"
 )
 
 var ImplyCommand = Command{
@@ -48,8 +49,8 @@ mp3 -> music`,
 
 // unexported
 
-func implyExec(options Options, args []string, databasePath string) (error, warnings) {
-	store, err := openDatabase(databasePath)
+func implyExec(options Options, args []string, databasePath string, rootPath string) (error, warnings) {
+	store, err := openDatabase(databasePath, rootPath)
 	if err != nil {
 		return err, nil
 	}

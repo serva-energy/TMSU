@@ -55,13 +55,13 @@ For further documentation on the usage of the --database option, refer to 'tmsu 
 
 // unexported
 
-func mountExec(options Options, args []string, databasePath string) (error, warnings) {
+func mountExec(options Options, args []string, databasePath string, rootPath string) (error, warnings) {
 	var mountOptions string
 	if options.HasOption("--options") {
 		mountOptions = options.Get("--options").Argument
 	}
 
-	store, err := openDatabase(databasePath)
+	store, err := openDatabase(databasePath, rootPath)
 	if err != nil {
 		return err, nil
 	}
@@ -81,14 +81,14 @@ func mountExec(options Options, args []string, databasePath string) (error, warn
 	case 1:
 		mountPath := args[0]
 
-		if err := mountExplicit(store.DbPath, mountPath, mountOptions); err != nil {
+		if err := mountExplicit(store.DbPath, mountPath, mountOptions, rootPath); err != nil {
 			return err, nil
 		}
 	case 2:
 		databasePath := args[0]
 		mountPath := args[1]
 
-		if err := mountExplicit(databasePath, mountPath, mountOptions); err != nil {
+		if err := mountExplicit(databasePath, mountPath, mountOptions, rootPath); err != nil {
 			return err, nil
 		}
 	default:
@@ -124,7 +124,7 @@ func listMounts() error {
 	return nil
 }
 
-func mountExplicit(databasePath string, mountPath string, mountOptions string) error {
+func mountExplicit(databasePath string, mountPath string, mountOptions string, rootPath string) error {
 	if alreadyMounted(mountPath) {
 		return fmt.Errorf("%v: mount path already in use", mountPath)
 	}
@@ -152,7 +152,7 @@ func mountExplicit(databasePath string, mountPath string, mountOptions string) e
 
 	log.Infof(2, "spawning daemon to mount VFS for database '%v' at '%v'", databasePath, mountPath)
 
-	args := []string{"vfs", "--database=" + databasePath, mountPath, "--options=" + mountOptions}
+	args := []string{"vfs", "--database=" + databasePath, mountPath, "--options=" + mountOptions, "--root-path=" + rootPath}
 	daemon := exec.Command(os.Args[0], args...)
 
 	tempFile, err := ioutil.TempFile("", "tmsu-vfs-")

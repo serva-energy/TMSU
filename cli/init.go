@@ -28,7 +28,7 @@ import (
 var InitCommand = Command{
 	Name:     "init",
 	Synopsis: "Initializes a new database",
-	Usages:   []string{"tmsu init [PATH] [--root-path=[ROOTPATH]]"},
+	Usages:   []string{"tmsu init [PATH]"},
 	Description: `Initializes a new local database.
 
 Creates a .tmsu directory under PATH and initialises a new empty database within it.
@@ -36,19 +36,19 @@ Creates a .tmsu directory under PATH and initialises a new empty database within
 If no PATH is specified then the current working directory is assumed.
 
 The new database is used automatically whenever TMSU is invoked from a directory under PATH (unless overridden by the global --database option or the TMSU_DB environment variable.`,
-	Options: Options{Option{"--root-path", "-P", "root path to use for relative paths; only for networked databases", true, ""},},
+	Options: Options{},
 	Exec:    initExec,
 }
 
 // unexported
 
-func initExec(options Options, args []string, databasePath string) (error, warnings) {
+func initExec(options Options, args []string, databasePath string, rootPath string) (error, warnings) {
 	paths := args
 
 	if database.HasScheme(databasePath) {
 		paths = []string{databasePath}
-		if !options.HasOption("--root-path") {
-			log.Fatalf("Networked database requires '--root-path' option")
+		if rootPath == "" {
+			log.Fatalf("Networked database requires '--root-path' option or 'TMSU_ROOT_PATH' environment variable")
 		}
 	} else if len(paths) == 0 {
 		workingDirectory, err := os.Getwd()
@@ -64,7 +64,7 @@ func initExec(options Options, args []string, databasePath string) (error, warni
 		if err := initializeDatabase(path); err != nil {
 			warnings = append(warnings, fmt.Sprintf("%v: could not initialize database: %v", path, err))
 		} else {
-			if err := insertRootPath(options, path); err != nil {
+			if err := insertRootPath(path, rootPath); err != nil {
 				warnings = append(warnings, fmt.Sprintf("%v: could not initialize database with root path: %v", path, err))
 			}
 		}
@@ -86,8 +86,8 @@ func initializeDatabase(path string) error {
 	return storage.CreateAt(dbPath)
 }
 
-func insertRootPath(options Options, path string) error {
-	if database.HasScheme(path) && options.HasOption("--root-path") {
+func insertRootPath(path string, rootPath string) error {
+	if database.HasScheme(path) && rootPath != "" {
 		db, err := database.OpenAt(path)
 		if err != nil {
 			return err
@@ -97,7 +97,7 @@ func insertRootPath(options Options, path string) error {
 		if err != nil {
 			return err
 		}
-		setting, err := database.UpdateSetting(tx, "rootPath", options.Get("--root-path").Argument)
+		setting, err := database.UpdateSetting(tx, "rootPath", rootPath)
 		if err != nil {
 			return err
 		}

@@ -17,10 +17,11 @@ package cli
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/oniony/TMSU/common/log"
 	"github.com/oniony/TMSU/common/terminal"
 	"github.com/oniony/TMSU/storage"
-	"strings"
 )
 
 var ValuesCommand = Command{
@@ -38,11 +39,11 @@ var ValuesCommand = Command{
 
 // unexported
 
-func valuesExec(options Options, args []string, databasePath string) (error, warnings) {
+func valuesExec(options Options, args []string, databasePath string, rootPath string) (error, warnings) {
 	showCount := options.HasOption("--count")
 	onePerLine := options.HasOption("-1")
 
-	store, err := openDatabase(databasePath)
+	store, err := openDatabase(databasePath, rootPath)
 	if err != nil {
 		return err, nil
 	}

@@ -17,13 +17,14 @@ package cli
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/oniony/TMSU/common/log"
 	_path "github.com/oniony/TMSU/common/path"
 	"github.com/oniony/TMSU/common/text"
 	"github.com/oniony/TMSU/entities"
 	"github.com/oniony/TMSU/storage"
-	"os"
-	"path/filepath"
 )
 
 var UntagCommand = Command{
@@ -45,7 +46,7 @@ var UntagCommand = Command{
 
 // unexported
 
-func untagExec(options Options, args []string, databasePath string) (error, warnings) {
+func untagExec(options Options, args []string, databasePath string, rootPath string) (error, warnings) {
 	if len(args) < 1 {
 		return fmt.Errorf("too few arguments"), nil
 	}
@@ -53,7 +54,7 @@ func untagExec(options Options, args []string, databasePath string) (error, warn
 	recursive := options.HasOption("--recursive")
 	followSymlinks := !options.HasOption("--no-dereference")
 
-	store, err := openDatabase(databasePath)
+	store, err := openDatabase(databasePath, rootPath)
 	if err != nil {
 		return err, nil
 	}

@@ -17,6 +17,7 @@ package cli
 
 import (
 	"fmt"
+
 	"github.com/oniony/TMSU/storage"
 )
 
@@ -34,12 +35,12 @@ var DeleteCommand = Command{
 
 // unexported
 
-func deleteExec(options Options, args []string, databasePath string) (error, warnings) {
+func deleteExec(options Options, args []string, databasePath string, rootPath string) (error, warnings) {
 	if len(args) == 0 {
 		return fmt.Errorf("too few arguments"), nil
 	}
 
-	store, err := openDatabase(databasePath)
+	store, err := openDatabase(databasePath, rootPath)
 	if err != nil {
 		return err, nil
 	}

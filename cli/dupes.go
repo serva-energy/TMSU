@@ -17,14 +17,15 @@ package cli
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/oniony/TMSU/common/filesystem"
 	"github.com/oniony/TMSU/common/fingerprint"
 	"github.com/oniony/TMSU/common/log"
 	_path "github.com/oniony/TMSU/common/path"
 	"github.com/oniony/TMSU/entities"
 	"github.com/oniony/TMSU/storage"
-	"os"
-	"path/filepath"
 )
 
 var DupesCommand = Command{
@@ -40,10 +41,10 @@ var DupesCommand = Command{
 
 // unexported
 
-func dupesExec(options Options, args []string, databasePath string) (error, warnings) {
+func dupesExec(options Options, args []string, databasePath string, rootPath string) (error, warnings) {
 	recursive := options.HasOption("--recursive")
 
-	store, err := openDatabase(databasePath)
+	store, err := openDatabase(databasePath, rootPath)
 	if err != nil {
 		return err, nil
 	}

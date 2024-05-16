@@ -18,6 +18,10 @@ package cli
 import (
 	"bufio"
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+
 	"github.com/oniony/TMSU/common/fingerprint"
 	"github.com/oniony/TMSU/common/log"
 	_path "github.com/oniony/TMSU/common/path"
@@ -25,9 +29,6 @@ import (
 	"github.com/oniony/TMSU/entities"
 	"github.com/oniony/TMSU/query"
 	"github.com/oniony/TMSU/storage"
-	"io"
-	"os"
-	"path/filepath"
 )
 
 var TagCommand = Command{
@@ -70,14 +71,14 @@ Note: The equals '=' and whitespace characters must be escaped with a backslash 
 
 // unexported
 
-func tagExec(options Options, args []string, databasePath string) (error, warnings) {
+func tagExec(options Options, args []string, databasePath string, rootPath string) (error, warnings) {
 	recursive := options.HasOption("--recursive")
 	includeHidden := options.HasOption("--include-hidden")
 	explicit := options.HasOption("--explicit")
 	force := options.HasOption("--force")
 	followSymlinks := !options.HasOption("--no-dereference")
 
-	store, err := openDatabase(databasePath)
+	store, err := openDatabase(databasePath, rootPath)
 	if err != nil {
 		return err, nil
 	}

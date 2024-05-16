@@ -17,6 +17,7 @@ package cli
 
 import (
 	"fmt"
+
 	"github.com/oniony/TMSU/common/log"
 	"github.com/oniony/TMSU/storage"
 )
@@ -37,7 +38,7 @@ Attempting to rename a tag or value with a name that already exists will result 
 
 // unexported
 
-func renameExec(options Options, args []string, databasePath string) (error, warnings) {
+func renameExec(options Options, args []string, databasePath string, rootPath string) (error, warnings) {
 	if len(args) < 2 {
 		return fmt.Errorf("too few arguments"), nil
 	}
@@ -49,7 +50,7 @@ func renameExec(options Options, args []string, databasePath string) (error, war
 	currentName := parseTagOrValueName(args[0])
 	newName := parseTagOrValueName(args[1])
 
-	store, err := openDatabase(databasePath)
+	store, err := openDatabase(databasePath, rootPath)
 	if err != nil {
 		return err, nil
 	}

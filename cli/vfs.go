@@ -13,14 +13,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+//go:build !windows
 // +build !windows
 
 package cli
 
 import (
 	"fmt"
-	"github.com/oniony/TMSU/vfs"
 	"strings"
+
+	"github.com/oniony/TMSU/vfs"
 )
 
 var VfsCommand = Command{
@@ -37,7 +39,7 @@ It is not normally necessary to issue this subcommand manually unless debugging 
 
 // unexported
 
-func vfsExec(options Options, args []string, databasePath string) (error, warnings) {
+func vfsExec(options Options, args []string, databasePath string, rootPath string) (error, warnings) {
 	if len(args) == 0 {
 		return fmt.Errorf("mountpoint not specified"), nil
 	}
@@ -49,7 +51,7 @@ func vfsExec(options Options, args []string, databasePath string) (error, warnin
 
 	mountPath := args[0]
 
-	store, err := openDatabase(databasePath)
+	store, err := openDatabase(databasePath, rootPath)
 	if err != nil {
 		return err, nil
 	}
