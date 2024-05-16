@@ -165,7 +165,7 @@ CREATE TABLE IF NOT EXISTS file (
     name VARCHAR(255) NOT NULL,
     fingerprint VARCHAR(255) NOT NULL,
     mod_time DATETIME NOT NULL,
-    size INTEGER NOT NULL,
+    size BIGINT NOT NULL,
     is_dir BOOLEAN NOT NULL,
     CONSTRAINT con_file_path UNIQUE (directory, name)
 )`
