@@ -310,7 +310,7 @@ func insertDefaultValue(tx *Tx) error {
 	sql := fmt.Sprintf(`
 INSERT INTO %s (id, name)
 VALUES (?, ?)`, "`value`")
-	result, err := tx.Exec(sql, 0, " ")
+	result, err := tx.Exec(sql, 0, "")
 	if err != nil {
 		return fmt.Errorf("could not insert default value: %v", err)
 	}
