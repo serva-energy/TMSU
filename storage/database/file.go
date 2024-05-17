@@ -106,7 +106,7 @@ WHERE directory = ? OR directory LIKE ?`
 		sql += `OR directory = '.' OR directory LIKE './%'`
 	}
 
-	sql += `ORDER BY ` + orderFilesString(tx.driver)
+	sql += ` ORDER BY ` + orderFilesString(tx.driver)
 
 	path = filepath.Clean(path)
 
@@ -140,8 +140,7 @@ func FilesByFingerprint(tx *Tx, fingerprint fingerprint.Fingerprint) (entities.F
 	sql := `
 SELECT id, directory, name, fingerprint, mod_time, size, is_dir
 FROM file
-WHERE fingerprint = ?
-ORDER BY ` + orderFilesString(tx.driver)
+WHERE fingerprint = ? ORDER BY ` + orderFilesString(tx.driver)
 
 	rows, err := tx.Query(sql, string(fingerprint))
 	if err != nil {
@@ -205,8 +204,7 @@ WHERE fingerprint IN (SELECT fingerprint
                       WHERE fingerprint != ''
                       GROUP BY fingerprint
                       HAVING count(1) > 1
-)
-ORDER BY ` + orderFilesString(tx.driver)
+) ORDER BY ` + orderFilesString(tx.driver)
 
 	rows, err := tx.Query(sql)
 	if err != nil {
