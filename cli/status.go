@@ -21,7 +21,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/oniony/TMSU/common/log"
 	_path "github.com/oniony/TMSU/common/path"
@@ -256,8 +255,7 @@ func statusCheckFile(absPath string, file *entities.File, report *StatusReport) 
 			return fmt.Errorf("%v: could not stat: %v", file.Path(), err)
 		}
 	} else {
-		// ! Truncate to ms. mysql only has up to ms precision.
-		if stat.Size() != file.Size || !stat.ModTime().UTC().Truncate(time.Microsecond).Equal(file.ModTime.UTC().Truncate(time.Microsecond)) {
+		if file.IsModified(stat) {
 			log.Infof(2, "%v: file is modified.", absPath)
 
 			report.AddRow(Row{absPath, MODIFIED})

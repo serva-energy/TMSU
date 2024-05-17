@@ -16,10 +16,12 @@
 package entities
 
 import (
-	"github.com/oniony/TMSU/common/fingerprint"
+	"os"
 	"path/filepath"
 	"sort"
 	"time"
+
+	"github.com/oniony/TMSU/common/fingerprint"
 )
 
 type FileId uint
@@ -83,6 +85,12 @@ func (files Files) Where(predicate func(*File) bool) Files {
 	}
 
 	return result
+}
+
+// Check if database file is modified from file on file system
+// Compares modified time in microsecond resolution
+func (file File) IsModified(stat os.FileInfo) bool {
+	return !file.ModTime.UTC().Truncate(time.Microsecond).Equal(stat.ModTime().UTC().Truncate(time.Microsecond)) || file.Size != stat.Size()
 }
 
 type FileTagCount struct {
