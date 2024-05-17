@@ -17,6 +17,7 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -526,20 +527,20 @@ id IN (SELECT file_id
                        FROM tag
                        WHERE name` + collation + ` = `)
 		builder.AppendParam(expression.Tag.Name)
-		builder.AppendSql(`) AND
+		builder.AppendSql(fmt.Sprintf(`) AND
              value_id = (SELECT id
-                         FROM value
-                         WHERE name` + collation + ` = `)
+                         FROM %s
+                         WHERE name`, "`value`") + collation + ` = `)
 		builder.AppendParam(expression.Value.Name)
 		builder.AppendSql(`)
      )`)
 	} else {
-		builder.AppendSql(`
+		builder.AppendSql(fmt.Sprintf(`
 id IN (WITH RECURSIVE impft (tag_id, value_id) AS
        (
            SELECT t.id, v.id
-           FROM tag t, value v
-           WHERE t.name` + collation + ` = `)
+           FROM tag t, %s v
+           WHERE t.name`, "`value`") + collation + ` = `)
 		builder.AppendParam(expression.Tag.Name)
 		builder.AppendSql("AND " + valueTerm + collation + " " + expression.Operator + " ")
 		builder.AppendParam(expression.Value.Name)

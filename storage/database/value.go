@@ -17,6 +17,7 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"strings"
 
 	"github.com/oniony/TMSU/entities"
@@ -24,11 +25,13 @@ import (
 
 // Retrieves the count of values.
 func ValueCount(tx *Tx) (uint, error) {
-	sql := `
+	sql := fmt.Sprintf(`
 SELECT count(1)
-FROM value`
+FROM %s
+WHERE %s.id != ?
+`, "`value`", "`value`")
 
-	rows, err := tx.Query(sql)
+	rows, err := tx.Query(sql, 0)
 	if err != nil {
 		return 0, err
 	}
@@ -39,10 +42,10 @@ FROM value`
 
 // Retrieves the complete set of values.
 func Values(tx *Tx) (entities.Values, error) {
-	sql := `
+	sql := fmt.Sprintf(`
 SELECT id, name
-FROM value
-ORDER BY name`
+FROM %s
+ORDER BY name`, "`value`")
 
 	rows, err := tx.Query(sql)
 	if err != nil {
@@ -55,10 +58,10 @@ ORDER BY name`
 
 // Retrieves a specific value.
 func Value(tx *Tx, id entities.ValueId) (*entities.Value, error) {
-	sql := `
+	sql := fmt.Sprintf(`
 SELECT id, name
-FROM value
-WHERE id = ?`
+FROM %s
+WHERE id = ?`, "`value`")
 
 	rows, err := tx.Query(sql, id)
 	if err != nil {
@@ -75,10 +78,10 @@ func ValuesByIds(tx *Tx, ids entities.ValueIds) (entities.Values, error) {
 		return make(entities.Values, 0), nil
 	}
 
-	sql := `
+	sql := fmt.Sprintf(`
 SELECT id, name
-FROM value
-WHERE id IN (?`
+FROM %s
+WHERE id IN (?`, "`value`")
 	sql += strings.Repeat(",?", len(ids)-1)
 	sql += ")"
 
@@ -103,11 +106,11 @@ WHERE id IN (?`
 
 // Retrieves the set of unused values.
 func UnusedValues(tx *Tx) (entities.Values, error) {
-	sql := `
+	sql := fmt.Sprintf(`
 SELECT id, name
-FROM value
+FROM %s
 WHERE id NOT IN (SELECT distinct(value_id)
-                 FROM file_tag)`
+                 FROM file_tag)`, "`value`")
 
 	rows, err := tx.Query(sql)
 	if err != nil {
@@ -122,10 +125,10 @@ WHERE id NOT IN (SELECT distinct(value_id)
 func ValueByName(tx *Tx, name string, ignoreCase bool) (*entities.Value, error) {
 	collation := collationFor(ignoreCase)
 
-	sql := `
+	sql := fmt.Sprintf(`
 SELECT id, name
-FROM value
-WHERE name ` + collation + ` = ?`
+FROM %s
+WHERE name `, "`value`") + collation + ` = ?`
 
 	rows, err := tx.Query(sql, name)
 	if err != nil {
@@ -144,10 +147,10 @@ func ValuesByNames(tx *Tx, names []string, ignoreCase bool) (entities.Values, er
 
 	collation := collationFor(ignoreCase)
 
-	sql := `
+	sql := fmt.Sprintf(`
 SELECT id, name
-FROM value
-WHERE name ` + collation + ` IN (?`
+FROM %s
+WHERE name `, "`value`") + collation + ` IN (?`
 	sql += strings.Repeat(",?", len(names)-1)
 	sql += ")"
 
@@ -177,13 +180,13 @@ COLLATE NOCASE`
 
 // Retrieves the set of values for the specified tag.
 func ValuesByTagId(tx *Tx, tagId entities.TagId) (entities.Values, error) {
-	sql := `
+	sql := fmt.Sprintf(`
 SELECT id, name
-FROM value
+FROM %s
 WHERE id IN (SELECT value_id
              FROM file_tag
              WHERE tag_id = ?1)
-ORDER BY name`
+ORDER BY name`, "`value`")
 
 	rows, err := tx.Query(sql, tagId)
 	if err != nil {
@@ -196,9 +199,9 @@ ORDER BY name`
 
 // Adds a value.
 func InsertValue(tx *Tx, name string) (*entities.Value, error) {
-	sql := `
-INSERT INTO value (name)
-VALUES (?)`
+	sql := fmt.Sprintf(`
+INSERT INTO %s (name)
+VALUES (?)`, "`value`")
 
 	result, err := tx.Exec(sql, name)
 	if err != nil {
@@ -223,10 +226,10 @@ VALUES (?)`
 
 // Renames a value.
 func RenameValue(tx *Tx, valueId entities.ValueId, newName string) (*entities.Value, error) {
-	sql := `
-UPDATE value
+	sql := fmt.Sprintf(`
+UPDATE %s
 SET name = ?
-WHERE id = ?`
+WHERE id = ?`, "`value`")
 
 	result, err := tx.Exec(sql, newName, valueId)
 	if err != nil {
@@ -249,9 +252,9 @@ WHERE id = ?`
 
 // Deletes a value.
 func DeleteValue(tx *Tx, valueId entities.ValueId) error {
-	sql := `
-DELETE FROM value
-WHERE id = ?`
+	sql := fmt.Sprintf(`
+DELETE FROM %s
+WHERE id = ?`, "`value`")
 
 	result, err := tx.Exec(sql, valueId)
 	if err != nil {

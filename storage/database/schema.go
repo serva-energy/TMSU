@@ -186,12 +186,12 @@ ON file(fingerprint)`
 }
 
 func createValueTable(tx *Tx) error {
-	sql := `
-CREATE TABLE IF NOT EXISTS ` + "`value`" + ` (
+	sql := fmt.Sprintf(`
+CREATE TABLE IF NOT EXISTS %s (
     id INTEGER PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     CONSTRAINT con_value_name UNIQUE (name)
-)`
+)`, "`value`")
 
 	if _, err := tx.Exec(sql); err != nil {
 		return err
@@ -201,7 +201,7 @@ CREATE TABLE IF NOT EXISTS ` + "`value`" + ` (
 }
 
 func createFileTagTable(tx *Tx) error {
-	sql := `
+	sql := fmt.Sprintf(`
 CREATE TABLE IF NOT EXISTS file_tag (
     file_id INTEGER NOT NULL,
     tag_id INTEGER NOT NULL,
@@ -209,8 +209,8 @@ CREATE TABLE IF NOT EXISTS file_tag (
     PRIMARY KEY (file_id, tag_id, value_id),
     FOREIGN KEY (file_id) REFERENCES file(id),
     FOREIGN KEY (tag_id) REFERENCES tag(id),
-    FOREIGN KEY (value_id) REFERENCES ` + "`value`" + `(id)
-)`
+    FOREIGN KEY (value_id) REFERENCES %s(id)
+)`, "`value`")
 
 	if _, err := tx.Exec(sql); err != nil {
 		return err
@@ -307,9 +307,9 @@ CREATE TABLE IF NOT EXISTS version (
 // Insert a default record into value table.
 // Some Databases have enforce referential integrity so we have to a record.
 func insertDefaultValue(tx *Tx) error {
-	sql := `
-INSERT INTO ` + "`value`" + ` (id, name)
-VALUES (?, ?)`
+	sql := fmt.Sprintf(`
+INSERT INTO %s (id, name)
+VALUES (?, ?)`, "`value`")
 	result, err := tx.Exec(sql, 0, " ")
 	if err != nil {
 		return fmt.Errorf("could not insert default value: %v", err)
