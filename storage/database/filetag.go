@@ -17,6 +17,7 @@ package database
 
 import (
 	"database/sql"
+
 	"github.com/oniony/TMSU/entities"
 )
 
@@ -256,11 +257,11 @@ WHERE value_id = ?`
 func CopyFileTags(tx *Tx, sourceTagId entities.TagId, destTagId entities.TagId) error {
 	sql := `
 INSERT INTO file_tag (file_id, tag_id, value_id)
-SELECT file_id, ?2, value_id
+SELECT file_id, ?, value_id
 FROM file_tag
-WHERE tag_id = ?1`
+WHERE tag_id = ?`
 
-	_, err := tx.Exec(sql, sourceTagId, destTagId)
+	_, err := tx.Exec(sql, destTagId, sourceTagId)
 	if err != nil {
 		return err
 	}
