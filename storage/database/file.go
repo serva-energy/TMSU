@@ -225,11 +225,20 @@ ORDER BY fingerprint, directory || '/' || name`
 		var fileId entities.FileId
 		var directory, name, fp string
 		var modTime time.Time
+		var modTimeStr string
 		var size int64
 		var isDir bool
 		err = rows.Scan(&fileId, &directory, &name, &fp, &modTime, &size, &isDir)
 		if err != nil {
-			return nil, err
+			// Fallback to parsing mod_time as string
+			err := rows.Scan(&fileId, &directory, &name, &fp, &modTimeStr, &size, &isDir)
+			if err != nil {
+				return nil, err
+			}
+			modTime, err = time.Parse(time.DateTime, modTimeStr)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		fingerprint := fingerprint.Fingerprint(fp)
