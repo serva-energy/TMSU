@@ -306,18 +306,18 @@ UPDATE file
 SET directory = ?, name = ?, fingerprint = ?, mod_time = ?, size = ?, is_dir = ?
 WHERE id = ?`
 
-	result, err := tx.Exec(sql, directory, name, string(fingerprint), modTime, size, isDir, int(fileId))
+	_, err := tx.Exec(sql, directory, name, string(fingerprint), modTime, size, isDir, int(fileId))
 	if err != nil {
 		return nil, err
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return nil, err
-	}
-	if rowsAffected != 1 {
-		panic("expected exactly one row to be affected.")
-	}
+	// rowsAffected, err := result.RowsAffected()
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// if rowsAffected != 1 {
+	// 	panic("expected exactly one row to be affected.")
+	// }
 
 	return &entities.File{entities.FileId(fileId), directory, name, fingerprint, modTime, size, isDir}, nil
 }

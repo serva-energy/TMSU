@@ -338,13 +338,9 @@ func repairUnmodified(store *storage.Storage, tx *storage.Tx, unmodified entitie
 		}
 
 		if !pretend {
-			// Some databases do not report rows updated if row is equivalent.
-			// Check if fingerprint is different first so panic is not thrown
-			if fingerprint != dbFile.Fingerprint {
-				_, err := store.UpdateFile(tx, dbFile.Id, dbFile.Path(), fingerprint, stat.ModTime(), stat.Size(), stat.IsDir())
-				if err != nil {
-					return fmt.Errorf("%v: could not update file in database: %v", dbFile.Path(), err)
-				}
+			_, err := store.UpdateFile(tx, dbFile.Id, dbFile.Path(), fingerprint, stat.ModTime(), stat.Size(), stat.IsDir())
+			if err != nil {
+				return fmt.Errorf("%v: could not update file in database: %v", dbFile.Path(), err)
 			}
 		}
 
