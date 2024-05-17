@@ -272,5 +272,7 @@ func compatMySql(query string) string {
 	query = regexp.MustCompile(`INSERT\s+OR\s+REPLACE\s+`).ReplaceAllString(query, "REPLACE ")
 	// Remove '==' comparison
 	query = regexp.MustCompile(`==`).ReplaceAllString(query, "=")
+	// DATETIME precision us. Sqlite has ns precision.
+	query = regexp.MustCompile(`DATETIME`).ReplaceAllString(query, "DATETIME(6)")
 	return query
 }
