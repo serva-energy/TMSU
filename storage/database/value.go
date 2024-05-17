@@ -200,18 +200,23 @@ ORDER BY name`, "`value`")
 // Adds a value.
 func InsertValue(tx *Tx, name string) (*entities.Value, error) {
 	sql := fmt.Sprintf(`
-INSERT INTO %s (name)
-VALUES (?)`, "`value`")
+INSERT INTO %s (id, name)
+VALUES (?, ?)`, "`value`")
 
-	result, err := tx.Exec(sql, name)
+	id, err := getNextId(tx, "`value`", "id")
 	if err != nil {
 		return nil, err
 	}
 
-	id, err := result.LastInsertId()
+	result, err := tx.Exec(sql, id, name)
 	if err != nil {
 		return nil, err
 	}
+
+	// id, err := result.LastInsertId()
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
