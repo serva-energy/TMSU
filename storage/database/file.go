@@ -238,7 +238,7 @@ ORDER BY fingerprint, directory || '/' || name`
 			}
 			modTime, err = time.Parse(time.DateTime, modTimeStr)
 			if err != nil {
-				return nil, err
+				modTime = time.Time{}
 			}
 		}
 
@@ -393,7 +393,7 @@ func readFile(rows *sql.Rows) (*entities.File, error) {
 		}
 		modTime, err = time.Parse(time.DateTime, modTimeStr)
 		if err != nil {
-			return nil, err
+			modTime = time.Time{}
 		}
 	}
 
