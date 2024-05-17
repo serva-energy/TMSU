@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/oniony/TMSU/common/fingerprint"
@@ -48,7 +49,7 @@ func Files(tx *Tx, sort string) (entities.Files, error) {
 SELECT id, directory, name, fingerprint, mod_time, size, is_dir
 FROM file `)
 
-	buildSort(sort, builder)
+	buildSort(sort, builder, tx.driver)
 
 	rows, err := tx.Query(builder.Sql())
 	if err != nil {
@@ -105,8 +106,7 @@ WHERE directory = ? OR directory LIKE ?`
 		sql += `OR directory = '.' OR directory LIKE './%'`
 	}
 
-	sql += `
-ORDER BY directory || '/' || name`
+	sql += `ORDER BY ` + orderFilesString(tx.driver)
 
 	path = filepath.Clean(path)
 
@@ -141,7 +141,7 @@ func FilesByFingerprint(tx *Tx, fingerprint fingerprint.Fingerprint) (entities.F
 SELECT id, directory, name, fingerprint, mod_time, size, is_dir
 FROM file
 WHERE fingerprint = ?
-ORDER BY directory || '/' || name`
+ORDER BY ` + orderFilesString(tx.driver)
 
 	rows, err := tx.Query(sql, string(fingerprint))
 	if err != nil {
@@ -184,7 +184,7 @@ func FileCountForQuery(tx *Tx, expression query.Expression, path string, pathCon
 
 // Retrieves the set of files matching the specified query and matching the specified path.
 func FilesForQuery(tx *Tx, expression query.Expression, path string, pathContainsRoot, explicitOnly, ignoreCase bool, sort string) (entities.Files, error) {
-	builder := buildQuery(expression, path, pathContainsRoot, explicitOnly, ignoreCase, sort)
+	builder := buildQuery(expression, path, pathContainsRoot, explicitOnly, ignoreCase, sort, tx.driver)
 
 	rows, err := tx.Query(builder.Sql(), builder.Params()...)
 	if err != nil {
@@ -206,7 +206,7 @@ WHERE fingerprint IN (SELECT fingerprint
                       GROUP BY fingerprint
                       HAVING count(1) > 1
 )
-ORDER BY fingerprint, directory || '/' || name`
+ORDER BY ` + orderFilesString(tx.driver)
 
 	rows, err := tx.Query(sql)
 	if err != nil {
@@ -429,7 +429,7 @@ WHERE`)
 	return builder
 }
 
-func buildQuery(expression query.Expression, path string, pathContainsRoot, explicitOnly, ignoreCase bool, sort string) *SqlBuilder {
+func buildQuery(expression query.Expression, path string, pathContainsRoot, explicitOnly, ignoreCase bool, sort string, driver string) *SqlBuilder {
 	builder := NewBuilder()
 
 	builder.AppendSql(`
@@ -438,7 +438,7 @@ FROM file
 WHERE`)
 	buildQueryBranch(expression, builder, explicitOnly, ignoreCase)
 	buildPathClause(path, pathContainsRoot, builder)
-	buildSort(sort, builder)
+	buildSort(sort, builder, driver)
 
 	return builder
 }
@@ -614,17 +614,32 @@ func buildPathClause(path string, pathContainsRoot bool, builder *SqlBuilder) {
 	builder.AppendSql(")")
 }
 
-func buildSort(sort string, builder *SqlBuilder) {
+func buildSort(sort string, builder *SqlBuilder, driver string) {
+	orderFiles := orderFilesString(driver)
+
 	switch sort {
 	case "none":
 		// do nowt
 	case "id":
 		builder.AppendSql("ORDER BY id")
 	case "name":
-		builder.AppendSql("ORDER BY directory || '/' || name")
+		builder.AppendSql("ORDER BY " + orderFiles)
 	case "time":
-		builder.AppendSql("ORDER BY mod_time, directory || '/' || name")
+		builder.AppendSql("ORDER BY mod_time, " + orderFiles)
 	case "size":
-		builder.AppendSql("ORDER BY size, directory || '/' || name")
+		builder.AppendSql("ORDER BY size, " + orderFiles)
 	}
+}
+
+// Return the file order clause
+func orderFilesString(driver string) string {
+	sep := ","
+	if driver == "sqlite3" {
+		sep = "||"
+	}
+	orderFiles := strings.Join([]string{"directory", "'/'", "name"}, sep)
+	if sep == "," {
+		orderFiles = fmt.Sprintf("CONCAT(%s)", orderFiles)
+	}
+	return orderFiles
 }
